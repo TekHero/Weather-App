@@ -1,0 +1,112 @@
+* - Lecture 130 (Like Feature) - *
+
+Step by step Tutorial:
+	
+	- Get a reference to the array of likes
+		- Before getting a reference to the array of likes, you need a reference to the user
+
+			1. 
+			- DataService // Whoever wants the current user, can call this property
+				- var REF_USER_CURRENT: Firebase {
+					let uid = NSUserDefaults.standardUserDefaults().valueForKey(KEY_UID) as! String
+					let user = Firebase(url: "\(URL_BASE)").childByAppendingPath("users").childByAppendingPath(uid)
+					// ^ -> https://showcaseapp-by-brian.firebaseio.com/users/(uid) ex. qwerty54321
+					return user!
+				}
+			2.
+			- Post Cell    // - This gets the reference to the users likes
+				- let likeRef = DataService.ds.REF_USER_CURRENT.childByAppendingPath("likes")
+					// ^ -> https://showcaseapp-by-brian.firebaseio.com/users/(uid)/likes
+			- Model
+				- Post
+					var postKey: String {
+						return _postKey
+					}
+
+			- Post Cell // Happens in confiureCell func
+				- likeRef = DataService.ds.REF_USER_CURRENT.childByAppendingPath("likes").childByAppendingPath(post.postKey)
+				// ^ -> https://showcaseapp-by-brian.firebaseio.com/users/(uid)/likes/(postKey) ex. qwerty54321
+
+				// This will only ever be called once, see if you can find this like from this post
+
+				likeRef.observeSingleEventOfType(.Value, withBlock: { snapshot in	
+
+					// snapshot.value grabs the data, if the data doesnt exist or there are no likes in the like array for the specific post, then lets leave the heart empty
+
+					if let doesNotExist = snapshot.value as? NSNull {
+						// This means we have no liked this specific post
+						self.likeImage.image = UIImage(named: "heart-empty")
+					} else {
+						self.likeImage.image = UIImage(named: "heart-full")
+					}
+				})
+
+			- at the top of the postCell // Making the path accessible by other callers
+				- var likeRef: Firebase!
+
+					- configureCell
+						- likeRef = DataService.ds.REF_USER_CURRENT.childByAppendingPath("likes").childByAppendingPath(post.postKey)
+
+
+
+			- func likeTapped(tap: UITapGestureRecognizer) {
+				likeRef.observeSingleEventOfType(.Value, withBlock: { snapshot in	
+					snapshot.value grabs the data, if the data doesnt exist or there are no likes in the like array for the specific post, then lets leave the heart empty
+					if let doesNotExist = snapshot.value as? NSNull {
+						// This means we have liked this specific post
+						self.likeImage.image = UIImage(named: "heart-full")
+					} else {
+						self.likeImage.image = UIImage(named: "heart-empty")
+					}
+				})
+			}
+
+			- Model
+				- Post class
+					Data munipulation should be done in the model class
+
+						- func adjustLikes(addLike: Bool) {
+							if addLike == true {
+								_likes = _likes + 1
+							} else {
+								_likes = _likes - 1
+							}
+						}
+
+						- private var _postRef: Firebase!
+
+							- in init
+								- self._postRef = DataService.ds.REF_POSTS.childByAppendingPath(self._postKey)
+
+
+						- func adjustLikes(addLike: Bool) {
+							if addLike == true {
+								_likes = _likes + 1
+							} else {
+								_likes = _likes - 1
+							}
+							// Grabbing the current value of likes and replacing it with the new value of likes
+							_postRef.childByAppendingPath("likes").setValue(_likes)
+						}
+
+			- Post Cell
+				- func likeTapped(tap: UITapGestureRecognizer) {
+				likeRef.observeSingleEventOfType(.Value, withBlock: { snapshot in	
+					snapshot.value grabs the data, if the data doesnt exist or there are no likes in the like array for the specific post, then lets leave the heart empty
+					if let doesNotExist = snapshot.value as? NSNull {
+						// This means we have liked this specific post
+						self.likeImage.image = UIImage(named: "heart-full")
+						self.post.adjustLikes(true)
+
+						// Store on our account, we already have the like reference, set the value of the post to be equal to true (Meaning, you have liked this post)
+						self.likeRef.setValue(true)
+					} else {
+						self.likeImage.image = UIImage(named: "heart-empty")
+						self.post.adjustLikes(false)
+						// Otherwise, delete the value of the post (Meaning, you have unliked this post)
+						self.likeRef.removeValue()
+
+							// RemoveValue() deletes the entire key all together
+					}
+				})
+			}

@@ -1,0 +1,27 @@
+// - ShowTrack App - //
+
+- 2 Table View Sections
+	- One for listing the shows that are on for the day
+	- Second for listing the rest of the shows that are not on for the day
+
+- Table View Cell
+	- Title
+	- Rated
+	- Runtime
+	- Start Time
+	- IMDB Rating
+	- Background image
+
+- Add TV Show View Controller
+	- UITextField
+		- Search for a specific tv show 
+		- Download the data accordingly
+
+	- Title:
+	- Rated:
+	- Runtime:
+	- Start Time:
+	- IMDB Rating:
+	- Background image:
+
+	- Add TV Show button
